@@ -16,6 +16,7 @@ pandas = "^2.2.2"
 openpyxl = "^3.1.5"
 bybit = "^0.2.12"
 requests = "^2.32.3"
+gym = "^0.26.2"
 
 [build-system]
 requires = ["poetry-core"]
