@@ -1,0 +1,21 @@
+HELP.md
+
+### IDE FILES ###
+*.swp
+*.swo
+Session.vim
+.cproject
+.idea
+*.iml
+.vscode
+.project
+.favorites.json
+.settings/
+.vs/
+.pytest_cache
+
+### Project ###
+__pycache__
+**.log
+dist
+build
