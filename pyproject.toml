@@ -6,9 +6,7 @@ authors = ["RomrerioPrevious <ggJohn12345@yandex.ru>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-pytest = "^8.2.2"
-numpy = "^2.0.0"
+python = ">=3.10,<3.11"
 icecream = "^2.1.3"
 textual = "^0.72.0"
 matplotlib = "^3.9.1"
@@ -17,6 +15,13 @@ openpyxl = "^3.1.5"
 bybit = "^0.2.12"
 requests = "^2.32.3"
 gym = "^0.26.2"
+tensorflow-io-gcs-filesystem = "0.27.0"
+tensorflow = "2.10"
+keras-rl = "^0.4.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.2.2"
+
 
 [build-system]
 requires = ["poetry-core"]

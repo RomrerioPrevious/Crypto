@@ -4,7 +4,7 @@ import os
 
 class Config:
     def __new__(cls):
-        if not hasattr(cls, 'instance'):
+        if not hasattr(cls, "instance"):
             parser = ConfigParser()
             dir_path = Config.find_config_path()
             parser.read(dir_path, encoding="UTF-8")
