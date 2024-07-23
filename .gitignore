@@ -19,4 +19,4 @@ __pycache__
 **.log
 dist
 build
-resources/config.ini
+crypto/resources/config.ini
