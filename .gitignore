@@ -19,4 +19,4 @@ __pycache__
 **.log
 dist
 build
-resources/trading_operations.csv
+resources/config.ini
