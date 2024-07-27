@@ -1,15 +1,15 @@
-import bybit
-from crypto import Config
+from pybit.unified_trading import HTTP
+from crypto import Config, Result
 
 
-class Parser:
+class BybitHandler:
     def __init__(self):
         self.config = Config()
-        self.client = bybit.bybit(
-            test=False,
+        self.session = HTTP(
+            testnet=False,
             api_key=self.config["bybit"]["api"],
             api_secret=self.config["bybit"]["secret-key"]
         )
 
-    def parse(self):
+    def parse(self) -> Result:
         ...

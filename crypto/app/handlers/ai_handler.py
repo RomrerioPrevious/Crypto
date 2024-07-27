@@ -1,0 +1,3 @@
+class AiHandler:
+    def __init__(self):
+        ...

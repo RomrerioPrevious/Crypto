@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 
 
-def moving_average(data, window=14):
+def moving_average(data: DataFrame, window=14):
     return data.rolling(window=window).mean()
 
 
-def calculate_rsi(data, period=14):
+def calculate_rsi(data: DataFrame, period=14) -> float:
     delta = data.diff()
     gain = delta.where(delta > 0, 0)
     loss = -delta.where(delta < 0, 0)
@@ -19,11 +20,11 @@ def calculate_rsi(data, period=14):
     return rsi
 
 
-def volume_pct_change(data):
+def volume_pct_change(data: DataFrame):
     return data.pct_change()
 
 
-def support_resistance_levels(data, window=14, tolerance=0.02):
+def support_resistance_levels(data: DataFrame, window=14, tolerance=0.02) -> (float, float):
     pivot_highs = pd.Series(
         np.where(data["high"]
                  .rolling(window=window).

@@ -1,5 +1,5 @@
-import numpy as np
 import pandas as pd
+from crypto import Config
 from trading_environment import TradingEnvironment
 from keras.models import Sequential
 from keras.layers import Dense
@@ -35,5 +35,6 @@ def train_bot(symbol: str, leverage: int, timeframe_to_trade: str, csv_train: st
     dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
 
     # Add this line after the training is complete
-    model.save("trained_model.h5")
-    return "trained_model.h5"  # Return the saved model path
+    path = f"{Config.find_global_path()}resources\\crypto_model.h5"
+    model.save(path)
+    return path
