@@ -3,8 +3,8 @@ from typing import Optional
 import gym
 import numpy as np
 from pandas import DataFrame
-from crypto import Action
-from indicators import moving_average, calculate_rsi, volume_pct_change, support_resistance_levels
+from ..models import Action
+from crypto.app.handlers.indicators import Indecators
 
 
 class TradingEnvironment(gym.Env, ABC):
@@ -30,15 +30,15 @@ class TradingEnvironment(gym.Env, ABC):
 
         # Calculate indicators
         state = self.data.iloc[self.current_step - self.window_size: self.current_step].copy()
-        state["moving_average"] = moving_average(state["close"], window=14)
-        state["rsi"] = calculate_rsi(state["close"], period=14)
-        state["volume_pct_change"] = volume_pct_change(state["volume"])
-        state["resistance"], state["support"] = support_resistance_levels(self.data)
+        state["moving_average"] = Indecators.moving_average(state["close"], window=14)
+        state["rsi"] = Indecators.calculate_rsi(state["close"], period=14)
+        state["volume_pct_change"] = Indecators.volume_pct_change(state["volume"])
+        state["resistance"], state["support"] = Indecators.find_support_resistance_levels(self.data)
 
-        self.data["ma"] = moving_average(self.data["close"])
-        self.data["rsi"] = calculate_rsi(self.data["close"])
-        self.data["volume_pct_change"] = volume_pct_change(self.data["volume"])
-        self.data["resistance"], self.data["support"] = support_resistance_levels(self.data)
+        self.data["ma"] = Indecators.moving_average(self.data["close"])
+        self.data["rsi"] = Indecators.calculate_rsi(self.data["close"])
+        self.data["volume_pct_change"] = Indecators.volume_pct_change(self.data["volume"])
+        self.data["resistance"], self.data["support"] = Indecators.find_support_resistance_levels(self.data)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         self.balance = self.initial_balance
@@ -50,10 +50,10 @@ class TradingEnvironment(gym.Env, ABC):
         self.balance_history = []
 
         state = self.data.iloc[self.current_step - self.window_size: self.current_step].copy()
-        state["moving_average"] = moving_average(state["close"], window=14)
-        state["rsi"] = calculate_rsi(state["close"], period=14)
-        state["volume_pct_change"] = volume_pct_change(state["volume"])
-        state["resistance"], state["support"] = support_resistance_levels(self.data)
+        state["moving_average"] = Indecators.moving_average(state["close"], window=14)
+        state["rsi"] = Indecators.calculate_rsi(state["close"], period=14)
+        state["volume_pct_change"] = Indecators.volume_pct_change(state["volume"])
+        state["resistance"], state["support"] = Indecators.find_support_resistance_levels(self.data)
 
         return state.values
 
@@ -86,10 +86,10 @@ class TradingEnvironment(gym.Env, ABC):
             self.reward = 0
 
         state = self.data.iloc[self.current_step - self.window_size: self.current_step].copy()
-        state["moving_average"] = moving_average(state["close"], window=14)
-        state["rsi"] = calculate_rsi(state["close"], period=14)
-        state["volume_pct_change"] = volume_pct_change(state["volume"])
-        state["resistance"], state["support"] = support_resistance_levels(self.data)
+        state["moving_average"] = Indecators.moving_average(state["close"], window=14)
+        state["rsi"] = Indecators.calculate_rsi(state["close"], period=14)
+        state["volume_pct_change"] = Indecators.volume_pct_change(state["volume"])
+        state["resistance"], state["support"] = Indecators.find_support_resistance_levels(self.data)
 
         return state.values, self.reward, done, dict()
 

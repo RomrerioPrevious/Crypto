@@ -10,3 +10,4 @@ class Action(Enum):
     Adjust_Take_Profit = 5
     Open_Short_Position = 6
     Close_Short_Position = 7
+    Sell = 8
