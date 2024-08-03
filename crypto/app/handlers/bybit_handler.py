@@ -59,5 +59,6 @@ class BybitHandler:
             moving_averages=moving_averages,
             margin_zones=margin_zones,
             resistance_waves=resistance_waves,
-            eliot_waves=eliot_waves
+            eliot_waves=eliot_waves,
+            support=(highs, lows)
         )

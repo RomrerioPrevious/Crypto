@@ -1,1 +1,1 @@
-Date,Operation,Currency,Cost,Quantity,Moving-average,RSI,Pivot-highs,Pivot-low,Resistance-levels,Volume-pct-change
+date,operation,currency,cost,quantity,rsi,white_bar,moving_averages,margin_zones,resistance_waves,eliot_waves,support_highs,support_lows,open,close

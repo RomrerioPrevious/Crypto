@@ -27,7 +27,7 @@ class Logger:
     @staticmethod
     def write_log(log: str):
         with open("logs.log", "a", encoding="UTF-8") as file:
-            file.write(log + "\n")
+            file.write(log + "\\n")
 
     @staticmethod
     def clear():

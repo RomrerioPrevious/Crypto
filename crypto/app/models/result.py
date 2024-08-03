@@ -12,16 +12,17 @@ class Result:
     margin_zones: Action
     resistance_waves: Action
     eliot_waves: Action
+    support: (float, float)
 
     @staticmethod
     def create_empty():
-        return Result(False, 0.0, False, None, None, None, None)
+        return Result(None, None, None, None, None, None, None, None)
 
-    def __add__(self, other):
+    def __add__(self, other):  # TODO new add
         if isinstance(other, Result):
             result = Result.create_empty()
             result.ai = other.ai or self.ai
-            result.rsi = max([other.rsi, self.rsi])
+            result.rsi = other.rsi, self.rsi
             result.white_bar = other.white_bar or self.white_bar
 
             result.moving_averages = self.moving_averages

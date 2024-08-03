@@ -13,9 +13,12 @@ def train_bot(symbol: str, leverage: int, timeframe_to_trade: str, csv_train: st
               window_size: int, initial_balance: int, episodes=5) -> str:
     # Load historical data for training
     data = pd.read_csv(csv_train)
+    df = data.rename({
+        "open": 1, "high": 2, "low": 3, "close": 4
+    })
 
     # Create trading environment
-    env = TradingEnvironment(data, window_size, initial_balance, leverage)
+    env = TradingEnvironment(df, window_size, initial_balance, leverage)
 
     # Define DQN model
     model = Sequential()
@@ -35,6 +38,6 @@ def train_bot(symbol: str, leverage: int, timeframe_to_trade: str, csv_train: st
     dqn.fit(env, nb_steps=50000, visualize=False, verbose=1)
 
     # Add this line after the training is complete
-    path = f"{Config.find_global_path()}resources\\crypto_model.h5"
+    path = f"{Config.find_global_path()}resources\\\\crypto_model.h5"
     model.save(path)
     return path

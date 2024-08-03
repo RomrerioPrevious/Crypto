@@ -2,6 +2,7 @@ from abc import ABC
 from typing import Optional
 import gym
 import numpy as np
+import pandas as pd
 from pandas import DataFrame
 from ..models import Action
 from crypto.app.handlers.indicators import Indecators
@@ -33,12 +34,12 @@ class TradingEnvironment(gym.Env, ABC):
         state["moving_average"] = Indecators.moving_average(state["close"], window=14)
         state["rsi"] = Indecators.calculate_rsi(state["close"], period=14)
         state["volume_pct_change"] = Indecators.volume_pct_change(state["volume"])
-        state["resistance"], state["support"] = Indecators.find_support_resistance_levels(self.data)
+        state["resistance"], state["support"] = self.find_support_resistance_levels(self.data)
 
         self.data["ma"] = Indecators.moving_average(self.data["close"])
         self.data["rsi"] = Indecators.calculate_rsi(self.data["close"])
         self.data["volume_pct_change"] = Indecators.volume_pct_change(self.data["volume"])
-        self.data["resistance"], self.data["support"] = Indecators.find_support_resistance_levels(self.data)
+        self.data["resistance"], self.data["support"] = self.find_support_resistance_levels(self.data)
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         self.balance = self.initial_balance
@@ -53,7 +54,7 @@ class TradingEnvironment(gym.Env, ABC):
         state["moving_average"] = Indecators.moving_average(state["close"], window=14)
         state["rsi"] = Indecators.calculate_rsi(state["close"], period=14)
         state["volume_pct_change"] = Indecators.volume_pct_change(state["volume"])
-        state["resistance"], state["support"] = Indecators.find_support_resistance_levels(self.data)
+        state["resistance"], state["support"] = self.find_support_resistance_levels(self.data)
 
         return state.values
 
@@ -165,3 +166,40 @@ class TradingEnvironment(gym.Env, ABC):
         self.stop_loss = None
         self.take_profit = None
         self.balance_history.append(self.balance)
+
+    @staticmethod
+    def find_support_resistance_levels(data: DataFrame, window=14, tolerance=0.02) -> (pd.Series, pd.Series):
+        high = data["close"]
+        pivot_highs = pd.Series(
+            np.where(high
+                     .rolling(window=window).
+                     max().
+                     shift(-window + 1) == high, high, np.nan),
+            index=data.index)
+        low = data["low"]
+        pivot_lows = pd.Series(
+            np.where(low
+                     .rolling(window=window)
+                     .min()
+                     .shift(-window + 1) == low, low, np.nan),
+            index=data.index)
+
+        pivot_highs = pivot_highs[pivot_highs.notnull()].copy()
+        pivot_lows = pivot_lows[pivot_lows.notnull()].copy()
+
+        for i, val in enumerate(pivot_highs):
+            if i == 0:
+                continue
+            if val - pivot_highs[i - 1] <= pivot_highs[i - 1] * tolerance:
+                pivot_highs.iloc[i] = np.nan
+
+        for i, val in enumerate(pivot_lows):
+            if i == 0:
+                continue
+            if pivot_lows[i - 1] - val <= val * tolerance:
+                pivot_lows.iloc[i] = np.nan
+
+        pivot_highs = pivot_highs[pivot_highs.notnull()]
+        pivot_lows = pivot_lows[pivot_lows.notnull()]
+
+        return pivot_highs, pivot_lows

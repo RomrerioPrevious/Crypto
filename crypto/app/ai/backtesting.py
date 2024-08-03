@@ -1,7 +1,7 @@
 import pandas as pd
 from keras.optimizers import Adam
-from crypto import TradingEnvironment
-from crypto import PerformanceMetrics
+from .trading_environment import TradingEnvironment
+from .performance_metrics import PerformanceMetrics
 from keras.models import load_model
 from rl.agents import DQNAgent
 from rl.memory import SequentialMemory
@@ -27,7 +27,7 @@ def backtest_bot(leverage, csv_backtesting, model_path):
     policy = EpsGreedyQPolicy(eps=0.1)
     dqn = DQNAgent(model=model, nb_actions=environment.action_space.n, memory=memory, nb_steps_warmup=500,
                    target_model_update=1e-2, policy=policy)
-    dqn.compile(Adam(learning_rate=0.0001), metrics=['mae'])
+    dqn.compile(Adam(learning_rate=0.0001), metrics=["mae"])
 
     portfolio_values = []
 

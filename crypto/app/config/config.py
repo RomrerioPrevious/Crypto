@@ -13,10 +13,10 @@ class Config:
 
     @staticmethod
     def find_config_path():
-        return f"{Config.find_global_path()}resources\\config.ini"
+        return f"{Config.find_global_path()}resources\\\\config.ini"
 
     @staticmethod
     def find_global_path():
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        dir_path = dir_path.removesuffix("app\\config")
+        dir_path = dir_path.removesuffix("app\\\\config")
         return dir_path

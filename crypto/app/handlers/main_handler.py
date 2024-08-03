@@ -12,7 +12,6 @@ class MainHandler:
 
     def parse(self):
         symbols = self.config["bybit"]["symbols"].split(";")
-        results = []
 
         for symbol in symbols:
             bybit = self.bybit_handler.parse(symbol=symbol)
@@ -26,8 +25,11 @@ class MainHandler:
     def make_action(self, result: Result) -> Action:
         ...
 
-    def buy(self):
+    def buy(self) -> None:
         ...
 
-    def sell(self):
+    def sell(self) -> None:
+        ...
+
+    def log(self, result: Result) -> None:
         ...
