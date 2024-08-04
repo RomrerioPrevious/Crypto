@@ -1,9 +1,10 @@
 from icecream import ic, install
-from crypto import Logger
+from crypto import Logger, CryptoApp
 
 
 def main():
-    ...
+    app = CryptoApp()
+    app.run()
 
 
 if __name__ == "__main__":

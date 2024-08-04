@@ -3,4 +3,4 @@ from .models import *
 from .handlers import *
 from .view import *
 from .ai import *
-from .app import *
+from crypto.app import *

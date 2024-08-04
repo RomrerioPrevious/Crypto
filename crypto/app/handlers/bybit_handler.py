@@ -38,9 +38,9 @@ class BybitHandler:
 
         rsi = Strategies.rsi_strategy(rsi=round(float(Indecators.calculate_rsi(close_prices).values[-1]), 2))
         white_bar = Strategies.white_bar_strategy(date=klines)
-        moving_averages = Strategies.moving_averages_strategy(short_ma=Indecators.calculate_sma(klines, "50"),
-                                                              long_ma=Indecators.calculate_sma(klines, "200"))
-        # TODO add normal set interval
+        moving_averages = Strategies.moving_averages_strategy(
+            short_ma=Indecators.calculate_sma(klines, Config()["strategies"]["short_ma"]),
+            long_ma=Indecators.calculate_sma(klines, Config()["strategies"]["long_ma"]))
         highs, lows = Indecators.find_support_resistance(klines)
         margin_zones = Strategies.margin_zones_strategy(data=klines,
                                                         highs=highs,
@@ -53,7 +53,7 @@ class BybitHandler:
                                                       wave_length=10)
 
         return Result(
-            ai=False,
+            ai=None,
             rsi=rsi,
             white_bar=white_bar,
             moving_averages=moving_averages,

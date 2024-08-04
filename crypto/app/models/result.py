@@ -5,13 +5,13 @@ from ..models import Action
 
 @dataclass
 class Result:
-    ai: bool
-    rsi: Action
-    white_bar: Action
-    moving_averages: Action
-    margin_zones: Action
-    resistance_waves: Action
-    eliot_waves: Action
+    ai: Action | None
+    rsi: Action | None
+    white_bar: Action | None
+    moving_averages: Action | None
+    margin_zones: Action | None
+    resistance_waves: Action | None
+    eliot_waves: Action | None
     support: (float, float)
 
     @staticmethod

@@ -92,7 +92,7 @@ class Strategies:
         elif close > highs:
             return Action.Sell
         else:
-            return None
+            return Action.Nothing
 
     @staticmethod
     def resistance_waves_strategy(data: DataFrame, highs: float) -> Action | None:
@@ -100,14 +100,14 @@ class Strategies:
         if close > highs:
             return Action.Sell
         else:
-            return None
+            return Action.Nothing
 
     @staticmethod
     def eliot_waves_strategy(data: DataFrame, highs: float, lows: float, wave_length: int) -> Action | None:
         close = data[4]
 
         if len(data) < 5 * wave_length:
-            return None
+            return Action.Nothing
 
         wave_types = []
         for i in range(0, len(data), wave_length):
@@ -119,20 +119,20 @@ class Strategies:
                 wave_types.append(-1)  # Down
 
         if len(wave_types) < 5:
-            return None
+            return Action.Nothing
         if wave_types[0] == wave_types[1] or wave_types[1] == wave_types[2] or \
                 wave_types[2] == wave_types[3] or wave_types[3] == wave_types[4]:
-            return None
+            return Action.Nothing
 
         corrective_wave = Strategies._find_corrective_wave(data, wave_length, 5 * wave_length, len(data))
         if not corrective_wave:
-            return None
+            return Action.Nothing
 
         if close.iloc[-1] > highs:
             return Action.Sell
         elif close.iloc[-1] < lows:
             return Action.Buy
-        return None
+        return Action.Nothing
 
     @staticmethod
     def _find_corrective_wave(data: DataFrame, wave_length: int, start_index: int, end_index: int) -> list | None:
@@ -165,7 +165,7 @@ class Strategies:
         elif rsi > overbought_threshold:
             return Action.Sell
         else:
-            return None
+            return Action.Nothing
 
     @staticmethod
     def white_bar_strategy(date: DataFrame) -> Action | None:
@@ -178,7 +178,7 @@ class Strategies:
             if close.iloc[-1] < open.iloc[-1]:
                 return Action.Sell
         else:
-            return None
+            return Action.Nothing
 
     @staticmethod
     def moving_averages_strategy(short_ma, long_ma) -> Action | None:
@@ -187,4 +187,4 @@ class Strategies:
         elif short_ma.iloc[-1] < long_ma.iloc[-1] and short_ma.iloc[-2] > long_ma.iloc[-2]:
             return Action.Sell
         else:
-            return None
+            return Action.Nothing

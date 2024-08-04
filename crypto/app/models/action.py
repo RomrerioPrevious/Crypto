@@ -11,3 +11,4 @@ class Action(Enum):
     Open_Short_Position = 6
     Close_Short_Position = 7
     Sell = 8
+    Nothing = 9
