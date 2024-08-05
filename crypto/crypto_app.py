@@ -30,6 +30,9 @@ class CryptoApp(App):
                                 placeholder="secret key",
                                 value=config["bybit"]["secret-key"])
                 with Horizontal():
+                    yield Input(id="price",
+                                placeholder="price",
+                                value=config["bybit"]["price"])
                     yield Input(id="symbols",
                                 placeholder="symbols",
                                 value=config["bybit"]["symbols"])
@@ -67,7 +70,8 @@ class CryptoApp(App):
         bybit_values = [
             "api",
             "secret-key",
-            "symbols"
+            "symbols",
+            "price"
         ]
         strategies_values = [
             "oversold_threshold",

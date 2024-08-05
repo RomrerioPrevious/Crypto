@@ -19,6 +19,7 @@ tensorflow = "2.10"
 keras-rl = "^0.4.2"
 pybit = "^5.8.0"
 numpy = "<2.0"
+stable-baselines3 = "^2.3.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.2.2"

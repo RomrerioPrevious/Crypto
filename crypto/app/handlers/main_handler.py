@@ -15,8 +15,8 @@ class MainHandler:
         self.ai_handler = AiHandler()
         self.client = self.client = HTTP(
             testnet=True,  # TODO
-            api_key=self.config["bybit"]["api"],
-            api_secret=self.config["bybit"]["secret-key"]
+            api_key=str(self.config["bybit"]["api"]),
+            api_secret=str(self.config["bybit"]["secret-key"])
         )
 
     def trade(self):
@@ -48,7 +48,7 @@ class MainHandler:
             Action.Nothing: 0
         }
 
-        actions[result.ai] += 0.4
+        actions[result.ai] += 0.35
         actions[result.rsi] += 0.1
         actions[result.white_bar] += 0.1
         actions[result.moving_averages] += 0.1
@@ -62,26 +62,25 @@ class MainHandler:
         return action
 
     def parse(self, symbol: str) -> Result | None:
-        bybit = self.bybit_handler.parse(symbol=symbol)
-        ai = self.ai_handler.parse(symbol=symbol)
-        try:
-            result = bybit + ai
-            return result
-        except TypeError as er:
-            Logger.write_error(er)
-            return None
+        result = self.bybit_handler.parse(symbol=symbol)
+        result.ai = self.ai_handler.parse(symbol=symbol)
+        return result
 
     def buy(self, symbol: str) -> None:
         self.client.place_order(
-            category="linear",
+            category="spot",
             symbol=symbol,
             orderType="Market",
-            side="Buy"
+            side="Buy",
+            qty=1,
+            price=self.config["bybit"]["price"],
+            orderLinkId=1,
+            positionIdx=2
         )
 
     def sell(self, symbol: str) -> None:
         response = self.client.get_orderbook(
-            category="linear",
+            category="spot",
             symbol=symbol,
             limit=50).get("result")
 
@@ -89,7 +88,7 @@ class MainHandler:
             ...
 
         self.client.place_order(
-            category="linear",
+            category="spot",
             symbol=symbol,
             orderType="Market",
             side="Sell",
@@ -120,4 +119,3 @@ class MainHandler:
 
         with open(f"{Config.find_global_path()}resources\\trading_operations.csv", "a", encoding="UTF-8") as file:
             file.write(data.to_csv())
-

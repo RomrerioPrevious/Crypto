@@ -21,9 +21,7 @@ class MainHandlerTest(TestCase):
         assert action == Action.Nothing
 
     def test_buy(self):
-        self.handler.buy(
-            symbol="BTCUSDT"
-        )
+        self.handler.buy("BTCUSDT")
 
     def test_sell(self):
         self.handler.sell(
