@@ -168,9 +168,9 @@ class Strategies:
             return Action.Nothing
 
     @staticmethod
-    def white_bar_strategy(date: DataFrame) -> Action | None:
-        close = date[4]
-        open = date[1]
+    def white_bar_strategy(data: DataFrame) -> Action | None:
+        close = data[4]
+        open = data[1]
         if close.iloc[-2] < open.iloc[-2]:
             if close.iloc[-1] > open.iloc[-1]:
                 return Action.Buy

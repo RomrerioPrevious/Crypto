@@ -1,1 +1,1 @@
-date,operation,currency,cost,quantity,rsi,white_bar,moving_averages,margin_zones,resistance_waves,eliot_waves,support_highs,support_lows,open,close
+date,operation,currency,cost,rsi,short_sma,long_sma,highs,lows,open,close

@@ -5,9 +5,7 @@ from crypto import Config, MainHandler, Result, Action
 class MainHandlerTest(TestCase):
     handler = MainHandler()
     config = Config()
-
-    def test_calculation_of_action(self):
-        result = Result(
+    result = Result(
             ai=Action.Buy,
             rsi=Action.Nothing,
             white_bar=Action.Nothing,
@@ -15,15 +13,29 @@ class MainHandlerTest(TestCase):
             margin_zones=Action.Nothing,
             resistance_waves=Action.Nothing,
             eliot_waves=Action.Nothing,
-            support=(1.0, 1.0),
+            support=(1.0, 1.0, 1.0, 1.0),
+            rsi_value=0.55,
+            short_sma=0.56,
+            long_sma=0.83
         )
-        action = self.handler.calculation_of_action(result)
+
+    def test_calculation_of_action(self):
+        action = self.handler.calculation_of_action(self.result)
         assert action == Action.Nothing
 
     def test_buy(self):
-        self.handler.buy("BTCUSDT")
+        self.handler.buy("BTCUSDT", self.result)
 
     def test_sell(self):
         self.handler.sell(
-            symbol="BTCUSDT"
+            "BTCUSDT",
+            self.result
+        )
+
+    def test_log(self):
+        self.handler.log(
+            result=self.result,
+            symbol="BTCUSDT",
+            action=Action.Buy,
+            cost=100.1
         )

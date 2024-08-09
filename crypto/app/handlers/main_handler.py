@@ -1,4 +1,6 @@
 import datetime
+from time import sleep
+from .indicators import Indecators
 import pandas as pd
 from .ai_handler import AiHandler
 from .bybit_handler import BybitHandler
@@ -14,108 +16,132 @@ class MainHandler:
         self.bybit_handler = BybitHandler()
         self.ai_handler = AiHandler()
         self.client = self.client = HTTP(
-            testnet=True,  # TODO
+            testnet=False,  # TODO
             api_key=str(self.config["bybit"]["api"]),
             api_secret=str(self.config["bybit"]["secret-key"])
         )
 
-    def trade(self):
-        symbols = self.config["bybit"]["symbols"].split()
+    async def trade(self):
+        while True:
+            symbols = self.config["bybit"]["symbols"].split()
 
-        for symbol in symbols:
-            result = self.parse(symbol)
+            for symbol in symbols:
+                try:
+                    result = self.parse(symbol)
 
-            if not result:
-                continue
+                    if not result:
+                        continue
 
-            action = self.calculation_of_action(result)
-            match action:
-                case Action.Buy:
-                    self.buy(symbol)
-                case Action.Sell:
-                    self.sell(symbol)
+                    action = self.calculation_of_action(result)
+                    match action:
+                        case Action.Buy:
+                            await self.buy(symbol, result)
+                        case Action.Sell:
+                            await self.sell(symbol, result)
+                except BaseException as ex:
+                    Logger.write_error(ex)
 
-            self.log(
-                result=result,
-                action=action,
-                symbol=symbol
-            )
+            sleep(60)
 
-    def calculation_of_action(self, result) -> Action:
-        actions = {
-            Action.Buy: 0,
-            Action.Sell: 0,
-            Action.Nothing: 0
-        }
+    async def calculation_of_action(self, result) -> Action:
+        try:
+            config = Config()["coefficients"]
 
-        actions[result.ai] += 0.35
-        actions[result.rsi] += 0.1
-        actions[result.white_bar] += 0.1
-        actions[result.moving_averages] += 0.1
-        actions[result.margin_zones] += 0.1
-        actions[result.resistance_waves] += 0.1
-        actions[result.eliot_waves] += 0.1
+            actions = {
+                Action.Buy: 0,
+                Action.Sell: 0,
+                Action.Nothing: 0
+            }
+
+            actions[result.ai] += float(config["ai"])
+            actions[result.rsi] += float(config["rsi"])
+            actions[result.white_bar] += float(config["white_bar"])
+            actions[result.moving_averages] += float(config["moving_averages"])
+            actions[result.margin_zones] += float(config["margin_zones"])
+            actions[result.resistance_waves] += float(config["resistance_waves"])
+            actions[result.eliot_waves] += float(config["eliot_waves"])
+        except BaseException as err:
+            Logger.write_error(err)
+            return Action.Nothing
 
         action = max(actions.items(), key=operator.itemgetter(1))[0]
         if action is None:
             action = Action.Nothing
         return action
 
-    def parse(self, symbol: str) -> Result | None:
+    async def parse(self, symbol: str) -> Result | None:
         result = self.bybit_handler.parse(symbol=symbol)
         result.ai = self.ai_handler.parse(symbol=symbol)
         return result
 
-    def buy(self, symbol: str) -> None:
+    async def buy(self, symbol: str, result: Result) -> float | None:
+        response = self.client.get_orderbook(
+            category="spot",
+            symbol=symbol,
+            limit=50).get("result")
+
+        price = float(response["a"][0][0])
+        coef = float(Config()["price"]["buy_coefficient"])
+        if price >= float(self.config["price"]["max_price"]):
+            return
+
         self.client.place_order(
             category="spot",
             symbol=symbol,
             orderType="Market",
             side="Buy",
             qty=1,
-            price=self.config["bybit"]["price"],
+            price=price * coef,
             orderLinkId=1,
-            positionIdx=2
+        )
+        await self.log(
+            result=result,
+            action=Action.Buy,
+            symbol=symbol,
+            cost=price * coef
         )
 
-    def sell(self, symbol: str) -> None:
+    async def sell(self, symbol: str, result: Result) -> None:
         response = self.client.get_orderbook(
             category="spot",
             symbol=symbol,
             limit=50).get("result")
 
-        if not response:  # TODO
-            ...
+        price = float(response["a"][0][0])
+        coef = float(Config()["price"]["sell_coefficient"])
 
         self.client.place_order(
             category="spot",
             symbol=symbol,
             orderType="Market",
             side="Sell",
-            positionIdx=2
+            price=price * coef,
+        )
+        self.log(
+            result=result,
+            action=Action.Sell,
+            symbol=symbol,
+            cost=price * coef
         )
 
-    def log(self, result: Result, action: Action, symbol: str) -> None:
+    async def log(self, result: Result, action: Action, symbol: str, cost: float) -> None:
         if action == Action.Nothing:
             return
 
-        data = {  # TODO
-            "date": datetime.datetime,
-            "operation": str(action),
-            "currency": symbol,
-            "cost": 0,
-            "quantity": 0,
-            "moving_averages": 0,
-            "margin_zones": 0,
-            "resistance_waves": 0,
-            "eliot_waves": 0,
-            "support_highs": 0,
-            "support_lows": 0,
-            "open": result.support[0],
-            "close": result.support[1]
-        }
-
-        data = pd.DataFrame(data)
+        data = [
+            datetime.datetime.now().strftime("%y/%m/%d/%H:%M"),
+            str(action),
+            symbol,
+            str(cost),
+            str(result.rsi_value),
+            str(result.short_sma),
+            str(result.long_sma),
+            str(result.support[0]),
+            str(result.support[1]),
+            str(result.support[2]),
+            str(result.support[3])
+        ]
 
         with open(f"{Config.find_global_path()}resources\\trading_operations.csv", "a", encoding="UTF-8") as file:
-            file.write(data.to_csv())
+            data = ",".join(data)
+            file.write(f"{data}\n")

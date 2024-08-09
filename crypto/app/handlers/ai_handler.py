@@ -10,7 +10,7 @@ from stable_baselines3 import A2C
 class AiHandler:
     def __init__(self):
         self.config = Config()
-        self.model = A2C.load(f"{Config.find_global_path()}resources\\model.h5")
+        self.model = A2C.load(f"{Config.find_global_path()}resources\\model.zip")
         self.env = make_vec_env("CartPole-v1", n_envs=1000)
         self.client = HTTP(
             testnet=False,

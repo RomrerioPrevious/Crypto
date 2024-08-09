@@ -13,10 +13,13 @@ class Result:
     resistance_waves: Action | None
     eliot_waves: Action | None
     support: (float, float)
+    rsi_value: float
+    short_sma: float
+    long_sma: float
 
     @staticmethod
     def create_empty():
-        return Result(None, None, None, None, None, None, None, None)
+        return Result(None, None, None, None, None, None, None, None, None, None, None)
 
     def __add__(self, other):  # TODO new add
         if isinstance(other, Result):

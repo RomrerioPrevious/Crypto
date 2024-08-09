@@ -4,19 +4,19 @@ from icecream import ic
 
 class Logger:
     @staticmethod
-    def info() -> str:
+    async def info() -> str:
         time = datetime.datetime.now().strftime("%H:%M:%S")
-        return f"{time} info | "
+        return f"info {time} | "
 
     @staticmethod
-    def error() -> str:
+    async def error() -> str:
         time = datetime.datetime.now().strftime("%H:%M:%S")
-        return f"{time} error | "
+        return f"error {time} | "
 
     @staticmethod
     def custom(debug: str):
         time = datetime.datetime.now().strftime("%H:%M:%S")
-        return f"{time} {debug} | "
+        return f"{debug} {time}| "
 
     @staticmethod
     def write_error(error: str | BaseException):
@@ -27,7 +27,7 @@ class Logger:
     @staticmethod
     def write_log(log: str):
         with open("logs.log", "a", encoding="UTF-8") as file:
-            file.write(log + "\\n")
+            file.write(log + "\n")
 
     @staticmethod
     def clear():

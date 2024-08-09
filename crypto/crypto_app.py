@@ -1,96 +1,77 @@
-from time import sleep
-
+import asyncio
+from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import *
-from textual.widgets import Header, Footer, Input, Button, Static, Label
+from textual.widgets import Header, Footer, Input, Button
+from .app.view import *
 from icecream import ic
-
 from crypto import MainHandler, Config
 
 
 class CryptoApp(App):
     BINDINGS = [("ctrl+d", "toggle_dark", "Theme"),
-                ("ctrl+t", "train", "Train"),
-                ("ctrl+s", "save", "Save"),
-                ("ctrl+r", "start", "Start")]
+                ("ctrl+s", "save", "Save")]
     CSS_PATH = "resources/index.tcss"
+    task = None
 
     def compose(self) -> ComposeResult:
-        config = Config()
-
-        yield Header(name="Valuer")
+        yield Header(name="Crypto")
         with Center(id="config"):
-            yield Label("bybit")
-            with Container(id="bybit"):
-                with Horizontal():
-                    yield Input(id="api",
-                                placeholder="api",
-                                value=config["bybit"]["api"])
-                    yield Input(id="secret-key",
-                                placeholder="secret key",
-                                value=config["bybit"]["secret-key"])
-                with Horizontal():
-                    yield Input(id="price",
-                                placeholder="price",
-                                value=config["bybit"]["price"])
-                    yield Input(id="symbols",
-                                placeholder="symbols",
-                                value=config["bybit"]["symbols"])
-            yield Label("strategies")
-            with Container(id="strategies"):
-                with Horizontal():
-                    yield Input(id="oversold_threshold",
-                                placeholder="oversold threshold",
-                                value=config["strategies"]["oversold_threshold"])
-                    yield Input(id="overbought_threshold",
-                                placeholder="overbought threshold",
-                                value=config["strategies"]["overbought_threshold"])
-                with Horizontal():
-                    yield Input(id="long_ma",
-                                placeholder="long_ma",
-                                value=config["strategies"]["long_ma"])
-                    yield Input(id="short_ma",
-                                placeholder="short_ma",
-                                value=config["strategies"]["short_ma"])
+            yield Settings(id="settings")
         with Horizontal(id="buttons"):
-            yield Button(id="training",
-                         label="training")
+            yield Button(id="save",
+                         label="save")
             yield Button(id="start",
                          label="start")
         yield Footer()
 
+    @on(Button.Pressed, "#start")
     def action_start(self):
         handler = MainHandler()
-        while True:
-            handler.trade()
-            sleep(60)
 
-    def action_save(self):
+        self.task = asyncio.create_task(handler.trade())
+
+    @on(Button.Pressed, "#stop")
+    async def action_stop(self):
+        self.task.cancel()
+
+        buttons = self.query_one("#buttons", Horizontal)
+        await self.query_one("#stop").remove()
+        new_button = Button(
+            id="start",
+            label="start"
+        )
+        await buttons.mount(new_button)
+
+    @on(Button.Pressed, "#save")
+    async def action_save(self):
         config = Config()
-        bybit_values = [
-            "api",
-            "secret-key",
-            "symbols",
-            "price"
-        ]
-        strategies_values = [
-            "oversold_threshold",
-            "overbought_threshold",
-            "long_ma",
-            "short_ma"
-        ]
-        bybit = self.query_one(f"#bybit")
-        for i in bybit_values:
-            value = bybit.query_one(f"#{i}", Input).value
-            config["bybit"][i] = value
-
-        strategies = self.query_one(f"#strategies")
-        for i in strategies_values:
-            value = strategies.query_one(f"#{i}", Input).value
-            config["strategies"][i] = value
+        await self.save_block(
+            section="bybit",
+            fields=["api", "secret-key", "symbols"]
+        )
+        await self.save_block(
+            section="strategies",
+            fields=["oversold_threshold", "overbought_threshold", "long_ma", "short_ma"]
+        )
+        await self.save_block(
+            section="price",
+            fields=["max_price", "buy_coefficient", "sell_coefficient"]
+        )
+        await self.save_block(
+            section="coefficients",
+            fields=["rsi", "white_bar", "moving_averages", "margin_zones", "resistance_waves", "eliot_waves"]
+        )
 
         with open(Config.find_config_path(), "w", encoding="UTF-8") as file:
             config.write(file)
 
-    def action_toggle_dark(self) -> None:
+    async def save_block(self, fields: [str], section: str):
+        config = Config()
+        block = self.query_one(f"#{section}")
+        for i in fields:
+            value = block.query_one(f"#{i}", Input).value
+            config[section][i] = value
+
+    async def action_toggle_dark(self) -> None:
         self.dark = not self.dark

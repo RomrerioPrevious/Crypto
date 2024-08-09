@@ -36,8 +36,9 @@ class BybitHandler:
         close_prices = np.array(close_prices, dtype="float")
         close_prices = pd.DataFrame(close_prices)
 
-        rsi = Strategies.rsi_strategy(rsi=round(float(Indecators.calculate_rsi(close_prices).values[-1]), 2))
-        white_bar = Strategies.white_bar_strategy(date=klines)
+        rsi_value = round(float(Indecators.calculate_rsi(close_prices).values[-1]), 2)
+        rsi = Strategies.rsi_strategy(rsi=rsi_value)
+        white_bar = Strategies.white_bar_strategy(data=klines)
         moving_averages = Strategies.moving_averages_strategy(
             short_ma=Indecators.calculate_sma(klines, Config()["strategies"]["short_ma"]),
             long_ma=Indecators.calculate_sma(klines, Config()["strategies"]["long_ma"]))
@@ -60,5 +61,8 @@ class BybitHandler:
             margin_zones=margin_zones,
             resistance_waves=resistance_waves,
             eliot_waves=eliot_waves,
-            support=(highs, lows)
+            support=(highs, lows, klines[1].iloc[-1],close_prices[0]),
+            rsi_value=rsi_value,
+            short_sma=Indecators.calculate_sma(klines, Config()["strategies"]["short_ma"]).iloc[-1],
+            long_sma=Indecators.calculate_sma(klines, Config()["strategies"]["long_ma"]).iloc[-1]
         )
