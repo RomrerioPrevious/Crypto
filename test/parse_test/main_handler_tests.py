@@ -1,3 +1,4 @@
+import asyncio
 from unittest import TestCase
 from crypto import Config, MainHandler, Result, Action
 
@@ -39,3 +40,6 @@ class MainHandlerTest(TestCase):
             action=Action.Buy,
             cost=100.1
         )
+
+    def test_trade(self):
+        asyncio.run(self.handler.trade())

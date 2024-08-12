@@ -31,6 +31,14 @@ class CryptoApp(App):
 
         self.task = asyncio.create_task(handler.trade())
 
+        buttons = self.query_one("#buttons", Horizontal)
+        self.query_one("#start").remove()
+        new_button = Button(
+            id="stop",
+            label="stop"
+        )
+        buttons.mount(new_button)
+
     @on(Button.Pressed, "#stop")
     async def action_stop(self):
         self.task.cancel()

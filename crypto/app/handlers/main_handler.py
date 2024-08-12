@@ -2,6 +2,7 @@ import datetime
 from time import sleep
 from .indicators import Indecators
 import pandas as pd
+from icecream import ic
 from .ai_handler import AiHandler
 from .bybit_handler import BybitHandler
 from ..config import Config, Logger
@@ -16,7 +17,7 @@ class MainHandler:
         self.bybit_handler = BybitHandler()
         self.ai_handler = AiHandler()
         self.client = self.client = HTTP(
-            testnet=False,  # TODO
+            testnet=False,
             api_key=str(self.config["bybit"]["api"]),
             api_secret=str(self.config["bybit"]["secret-key"])
         )
@@ -27,54 +28,51 @@ class MainHandler:
 
             for symbol in symbols:
                 try:
-                    result = self.parse(symbol)
+                    result = await self.parse(symbol)
 
                     if not result:
                         continue
 
-                    action = self.calculation_of_action(result)
+                    try:
+                        config = Config()["coefficients"]
+
+                        actions = {
+                            Action.Buy: 0,
+                            Action.Sell: 0,
+                            Action.Nothing: 0
+                        }
+
+                        actions[result.ai] += float(config["ai"])
+                        actions[result.rsi] += float(config["rsi"])
+                        actions[result.white_bar] += float(config["white_bar"])
+                        actions[result.moving_averages] += float(config["moving_averages"])
+                        actions[result.margin_zones] += float(config["margin_zones"])
+                        actions[result.resistance_waves] += float(config["resistance_waves"])
+                        actions[result.eliot_waves] += float(config["eliot_waves"])
+                    except BaseException as err:
+                        await Logger.write_error(err)
+                        actions = {None: 1}
+
+                    action = max(actions.items(), key=operator.itemgetter(1))[0]
+                    if action is None:
+                        action = Action.Nothing
+
                     match action:
                         case Action.Buy:
-                            await self.buy(symbol, result)
+                            self.buy(symbol, result)
                         case Action.Sell:
-                            await self.sell(symbol, result)
+                            self.sell(symbol, result)
                 except BaseException as ex:
-                    Logger.write_error(ex)
+                    ...
 
-            sleep(60)
-
-    async def calculation_of_action(self, result) -> Action:
-        try:
-            config = Config()["coefficients"]
-
-            actions = {
-                Action.Buy: 0,
-                Action.Sell: 0,
-                Action.Nothing: 0
-            }
-
-            actions[result.ai] += float(config["ai"])
-            actions[result.rsi] += float(config["rsi"])
-            actions[result.white_bar] += float(config["white_bar"])
-            actions[result.moving_averages] += float(config["moving_averages"])
-            actions[result.margin_zones] += float(config["margin_zones"])
-            actions[result.resistance_waves] += float(config["resistance_waves"])
-            actions[result.eliot_waves] += float(config["eliot_waves"])
-        except BaseException as err:
-            Logger.write_error(err)
-            return Action.Nothing
-
-        action = max(actions.items(), key=operator.itemgetter(1))[0]
-        if action is None:
-            action = Action.Nothing
-        return action
+            sleep(5)
 
     async def parse(self, symbol: str) -> Result | None:
         result = self.bybit_handler.parse(symbol=symbol)
         result.ai = self.ai_handler.parse(symbol=symbol)
         return result
 
-    async def buy(self, symbol: str, result: Result) -> float | None:
+    def buy(self, symbol: str, result: Result) -> float | None:
         response = self.client.get_orderbook(
             category="spot",
             symbol=symbol,
@@ -90,18 +88,17 @@ class MainHandler:
             symbol=symbol,
             orderType="Market",
             side="Buy",
-            qty=1,
+            qty="1",
             price=price * coef,
-            orderLinkId=1,
         )
-        await self.log(
+        self.log(
             result=result,
             action=Action.Buy,
             symbol=symbol,
             cost=price * coef
         )
 
-    async def sell(self, symbol: str, result: Result) -> None:
+    def sell(self, symbol: str, result: Result) -> None:
         response = self.client.get_orderbook(
             category="spot",
             symbol=symbol,
@@ -115,6 +112,7 @@ class MainHandler:
             symbol=symbol,
             orderType="Market",
             side="Sell",
+            qty="1",
             price=price * coef,
         )
         self.log(
@@ -124,7 +122,7 @@ class MainHandler:
             cost=price * coef
         )
 
-    async def log(self, result: Result, action: Action, symbol: str, cost: float) -> None:
+    def log(self, result: Result, action: Action, symbol: str, cost: float) -> None:
         if action == Action.Nothing:
             return
 

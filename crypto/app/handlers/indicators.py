@@ -179,6 +179,7 @@ class Strategies:
                 return Action.Sell
         else:
             return Action.Nothing
+        return Action.Nothing
 
     @staticmethod
     def moving_averages_strategy(short_ma, long_ma) -> Action | None:
