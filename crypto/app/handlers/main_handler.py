@@ -6,7 +6,7 @@ from icecream import ic
 from .ai_handler import AiHandler
 from .bybit_handler import BybitHandler
 from ..config import Config, Logger
-from ..models import Result, Action
+from ..models import Result, Action, Save
 from pybit.unified_trading import HTTP
 import operator
 
@@ -16,11 +16,19 @@ class MainHandler:
         self.config = Config()
         self.bybit_handler = BybitHandler()
         self.ai_handler = AiHandler()
+        self.save = Save()
         self.client = self.client = HTTP(
             testnet=False,
             api_key=str(self.config["bybit"]["api"]),
             api_secret=str(self.config["bybit"]["secret-key"])
         )
+
+        for symbol in self.config["bybit"]["symbols"].split():
+            responce = self.client.get_wallet_balance(
+                accountType="UNIFIED",
+                coin=symbol,
+            )
+            #  TODO add
 
     async def trade(self):
         while True:
@@ -80,22 +88,22 @@ class MainHandler:
 
         price = float(response["a"][0][0])
         coef = float(Config()["price"]["buy_coefficient"])
-        if price >= float(self.config["price"]["max_price"]):
-            return
+        qty = self.save.calculate_quantity_to_buy(symbol, price * coef)
 
         self.client.place_order(
             category="spot",
             symbol=symbol,
             orderType="Market",
             side="Buy",
-            qty="1",
+            qty=qty,
             price=price * coef,
         )
+        self.save.add(symbol, price * coef, qty)
         self.log(
             result=result,
             action=Action.Buy,
             symbol=symbol,
-            cost=price * coef
+            cost=price * coef * qty
         )
 
     def sell(self, symbol: str, result: Result) -> None:
@@ -106,20 +114,21 @@ class MainHandler:
 
         price = float(response["a"][0][0])
         coef = float(Config()["price"]["sell_coefficient"])
+        qty = self.save.calculate_quantity_to_sell(symbol, price * coef)
 
         self.client.place_order(
             category="spot",
             symbol=symbol,
             orderType="Market",
             side="Sell",
-            qty="1",
+            qty=qty,
             price=price * coef,
         )
         self.log(
             result=result,
             action=Action.Sell,
             symbol=symbol,
-            cost=price * coef
+            cost=price * coef * qty
         )
 
     def log(self, result: Result, action: Action, symbol: str, cost: float) -> None:
